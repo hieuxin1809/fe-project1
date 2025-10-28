@@ -178,15 +178,25 @@ function Header({ setBoardId, setBoard, board }) {
       flexDirection="row"
       alignItems="center"
       justifyContent="space-between"
+      // sx={{
+      //   backgroundColor: "#1d2125",
+      //   position: "fixed",
+      //   top: 0,
+      //   right: 0,
+      //   width: "100%",
+      //   zIndex: 1000,
+      //   padding: "4px 20px",
+      // }}
       sx={{
         backgroundColor: "#1d2125",
         position: "fixed",
-        top: 0,
+        top: { xs: "48px", sm: "56px" }, // <-- dịch xuống chịu AppBar
         right: 0,
         width: "100%",
         zIndex: 1000,
         padding: "4px 20px",
       }}
+
     >
       <Stack direction="row" alignItems="center">
         {boardList.length != 0 && !openNewBoardTitle ? (

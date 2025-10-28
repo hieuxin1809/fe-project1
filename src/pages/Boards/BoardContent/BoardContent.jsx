@@ -259,6 +259,7 @@ export const BoardContent = ({
           "&::-webkit-scrollbar": {
             width: "6px",
           },
+          marginTop: { xs: "48px", sm: "56px" },
         }}
       >
         <ListColumns

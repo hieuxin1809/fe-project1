@@ -2,6 +2,7 @@ import { Container } from "@mui/material";
 import { Board } from "./pages/Boards/_id";
 import Header from "./pages/Header/Header";
 import { useState } from "react";
+import TopAppBar from "./pages/Header/TopAppBar";
 
 function App() {
   const [boardId, setBoardId] = useState();
@@ -19,6 +20,7 @@ function App() {
           flexDirection: "column",
         }}
       >
+        <TopAppBar/>
         <Header setBoardId={setBoardId} setBoard={setBoard} board={board} />
         <Board
           boardId={boardId}
