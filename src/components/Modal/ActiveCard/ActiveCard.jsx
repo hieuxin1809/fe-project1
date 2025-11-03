@@ -313,15 +313,6 @@ function ActiveCard() {
               </Box>
               
               {/* Activity */}
-              <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <DvrOutlinedIcon />
-                      <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>Activity</Typography>
-                  </Box>
-                  <CardActivitySection cardComments={activeCard?.comments} onAddCardComment={onAddCardComment} />
-            </Box>
-
-
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <DvrOutlinedIcon />
