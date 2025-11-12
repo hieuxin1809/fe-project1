@@ -1,3 +1,14 @@
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert, Chip } from '@mui/material'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/vi'
+
+dayjs.extend(relativeTime)
+dayjs.locale('vi')
+
 import Box from '@mui/material/Box'
 import Modal from '@mui/material/Modal'
 import Typography from '@mui/material/Typography'
@@ -41,6 +52,7 @@ import {
 import { updateCardDetailsAPI } from '~/apis'
 import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { selectCurrentUser } from '~/redux/user/userSlice'
+import { setCardDueDate } from '~/redux/activeCard/activeCardSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -78,6 +90,11 @@ function ActiveCard() {
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard)
   const currentUser = useSelector(selectCurrentUser)
 
+  const [openDateDialog, setOpenDateDialog] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'))
+  const [finalDate, setFinalDate] = useState(activeCard?.dueDate ? dayjs(activeCard.dueDate) : null)
+  const [error, setError] = useState('')
+
   // Không dùng biến State để check đóng mở Modal nữa vì chúng ta sẽ check theo cái biến isShowModalActiveCard trong redux
   // const [isOpen, setIsOpen] = useState(true)
   // const handleOpenModal = () => setIsOpen(true)
@@ -86,33 +103,33 @@ function ActiveCard() {
     dispatch(clearAndHideCurrentActiveCard())
   }
   const onUploadCardAttachment = (event) => {
-  const files = event.target?.files
-  if (!files?.length) return
+    const files = event.target?.files
+    if (!files?.length) return
 
-  let formData = new FormData()
-  for (const file of files) {
-    const error = singleFileValidator(file)
-    if (error) {
-      toast.error(error)
-      return
+    let formData = new FormData()
+    for (const file of files) {
+      const error = singleFileValidator(file)
+      if (error) {
+        toast.error(error)
+        return
+      }
+      formData.append('attachment', file)
     }
-    formData.append('attachment', file)
-  }
 
-  toast.promise(
-    callApiUpdateCard(formData).finally(() => event.target.value = ''),
-    { pending: 'Uploading attachments...' }
-  )
-}
+    toast.promise(
+      callApiUpdateCard(formData).finally(() => event.target.value = ''),
+      { pending: 'Uploading attachments...' }
+    )
+  }
 
   // Func gọi API dùng chung cho các trường hợp update card title, description, cover, comment...vv
   const callApiUpdateCard = async (updateData) => {
     if (!activeCard?._id) {
-        console.error('ERROR: Missing activeCard._id. Request canceled.');
-        // Hiển thị toast lỗi trên giao diện
-        toast.error('Cannot update: Card ID is missing. Please refresh.', { theme: 'colored' });
-        // Trả về một object rỗng để ngăn chặn lỗi tiếp theo
-        return {}; 
+      console.error('ERROR: Missing activeCard._id. Request canceled.');
+      // Hiển thị toast lỗi trên giao diện
+      toast.error('Cannot update: Card ID is missing. Please refresh.', { theme: 'colored' });
+      // Trả về một object rỗng để ngăn chặn lỗi tiếp theo
+      return {};
     }
     const updatedCard = await updateCardDetailsAPI(activeCard._id, updateData)
 
@@ -123,80 +140,80 @@ function ActiveCard() {
     dispatch(updateCardInBoard(updatedCard))
 
     if (updatedCard?.comments?.length > 0 && updateData.commentToAdd) {
-    // Lấy bản ghi comment mới nhất (giả định Back-end unshift/đẩy comment mới lên đầu)
-    const newComment = updatedCard.comments[0]
-    
-    // Gửi sự kiện Socket kèm dữ liệu comment mới
-    // Tên sự kiện: FE_NEW_COMMENT_IN_CARD
-    socketIoInstance.emit('FE_NEW_COMMENT_IN_CARD', { 
+      // Lấy bản ghi comment mới nhất (giả định Back-end unshift/đẩy comment mới lên đầu)
+      const newComment = updatedCard.comments[0]
+
+      // Gửi sự kiện Socket kèm dữ liệu comment mới
+      // Tên sự kiện: FE_NEW_COMMENT_IN_CARD
+      socketIoInstance.emit('FE_NEW_COMMENT_IN_CARD', {
         ...newComment,
         userId: newComment.userId?.toString?.(), // 👈 ép userId về string
         cardId: activeCard._id.toString()  // Thêm cardId để các client khác biết comment thuộc card nào
-    })
-  }
-  // ✨ Xử lý Emit cho CÁC TRƯỜNG HỢP CẬP NHẬT CHUNG (Title, Description, Cover, Member, etc.)
+      })
+    }
+    // ✨ Xử lý Emit cho CÁC TRƯỜNG HỢP CẬP NHẬT CHUNG (Title, Description, Cover, Member, etc.)
     else if (!updateData.commentToAdd) {
-        if (!socketIoInstance) {
-            console.error('SOCKET ERROR: socketIoInstance is NULL or UNDEFINED!');
-            return updatedCard; // Ngăn không cho Emit và thoát
-        }
-        console.log('SOCKET EMITTING: FE_CARD_DETAILS_UPDATED'); // Log thành công
-        socketIoInstance.emit('FE_CARD_DETAILS_UPDATED', updatedCard)
+      if (!socketIoInstance) {
+        console.error('SOCKET ERROR: socketIoInstance is NULL or UNDEFINED!');
+        return updatedCard; // Ngăn không cho Emit và thoát
+      }
+      console.log('SOCKET EMITTING: FE_CARD_DETAILS_UPDATED'); // Log thành công
+      socketIoInstance.emit('FE_CARD_DETAILS_UPDATED', updatedCard)
     }
     return updatedCard
   }
   useEffect(() => {
-  // Đảm bảo activeCard và isShowModalActiveCard đã sẵn sàng
-  if (!activeCard?._id) return
+    // Đảm bảo activeCard và isShowModalActiveCard đã sẵn sàng
+    if (!activeCard?._id) return
 
-  // 1. Function xử lý khi nhận được comment real-time
-  const onReceiveNewComment = (newComment) => {
-    
-    // Kiểm tra xem comment này có thuộc Card đang mở hay không
-    if (isShowModalActiveCard && newComment.cardId === activeCard._id) {
-      
-      // ⚠️ Đảm bảo newComment có đầy đủ thông tin user (userAvatar, userDisplayName)
-      // Nếu Back-end không tự động map, bạn cần bổ sung logic mapping user info vào đây.
+    // 1. Function xử lý khi nhận được comment real-time
+    const onReceiveNewComment = (newComment) => {
 
-      // B1: Cập nhật comment mới vào Card đang active (Redux activeCard/activeCardSlice)
-      dispatch(updateCurrentActiveCard({
-        // Thêm comment mới vào đầu mảng comments hiện tại (unshift)
-        comments: [newComment, ...activeCard.comments]
-      }))
+      // Kiểm tra xem comment này có thuộc Card đang mở hay không
+      if (isShowModalActiveCard && newComment.cardId === activeCard._id) {
 
-      // B2: Cập nhật comment mới vào Card trong Board (Redux activeBoard/activeBoardSlice)
-      // Tùy thuộc vào slice của bạn, có thể cần dispatch thêm hành động này
-      dispatch(updateCardInBoard({
-        ...activeCard,
-        comments: [newComment, ...activeCard.comments]
-      }))
+        // ⚠️ Đảm bảo newComment có đầy đủ thông tin user (userAvatar, userDisplayName)
+        // Nếu Back-end không tự động map, bạn cần bổ sung logic mapping user info vào đây.
+
+        // B1: Cập nhật comment mới vào Card đang active (Redux activeCard/activeCardSlice)
+        dispatch(updateCurrentActiveCard({
+          // Thêm comment mới vào đầu mảng comments hiện tại (unshift)
+          comments: [newComment, ...activeCard.comments]
+        }))
+
+        // B2: Cập nhật comment mới vào Card trong Board (Redux activeBoard/activeBoardSlice)
+        // Tùy thuộc vào slice của bạn, có thể cần dispatch thêm hành động này
+        dispatch(updateCardInBoard({
+          ...activeCard,
+          comments: [newComment, ...activeCard.comments]
+        }))
+      }
     }
-  }
-  const onReceiveCardUpdate = (incomingCard) => {
-    // ✨ THÊM LOG NÀY
-    console.log('CLIENT RECEIVED BE_CARD_DETAILS_UPDATED. Incoming ID:', incomingCard._id); 
-    console.log('LISTENER FIRED! Incoming Title:', incomingCard.title);
-    
-    if (incomingCard._id === activeCard._id) { 
+    const onReceiveCardUpdate = (incomingCard) => {
+      // ✨ THÊM LOG NÀY
+      console.log('CLIENT RECEIVED BE_CARD_DETAILS_UPDATED. Incoming ID:', incomingCard._id);
+      console.log('LISTENER FIRED! Incoming Title:', incomingCard.title);
+
+      if (incomingCard._id === activeCard._id) {
         console.log('CLIENT UPDATING MODAL/BOARD:', incomingCard.title); // Log thành công
         dispatch(updateCurrentActiveCard(incomingCard))
         dispatch(updateCardInBoard(incomingCard))
-    } else {
+      } else {
         console.warn('Received update for different card:', incomingCard._id);
+      }
     }
-}
 
-  // 2. Lắng nghe sự kiện real-time từ server gửi về
-  // Tên sự kiện: BE_NEW_COMMENT_IN_CARD
-  socketIoInstance.on('BE_NEW_COMMENT_IN_CARD', onReceiveNewComment)
-  socketIoInstance.on('BE_CARD_DETAILS_UPDATED', onReceiveCardUpdate) 
+    // 2. Lắng nghe sự kiện real-time từ server gửi về
+    // Tên sự kiện: BE_NEW_COMMENT_IN_CARD
+    socketIoInstance.on('BE_NEW_COMMENT_IN_CARD', onReceiveNewComment)
+    socketIoInstance.on('BE_CARD_DETAILS_UPDATED', onReceiveCardUpdate)
 
-  // 3. Clean Up event để tránh lỗi
-  return () => {
-    socketIoInstance.off('BE_NEW_COMMENT_IN_CARD', onReceiveNewComment)
-    socketIoInstance.off('BE_CARD_DETAILS_UPDATED', onReceiveCardUpdate)
-  }
-}, [dispatch, activeCard, isShowModalActiveCard, activeCard?._id])
+    // 3. Clean Up event để tránh lỗi
+    return () => {
+      socketIoInstance.off('BE_NEW_COMMENT_IN_CARD', onReceiveNewComment)
+      socketIoInstance.off('BE_CARD_DETAILS_UPDATED', onReceiveCardUpdate)
+    }
+  }, [dispatch, activeCard, isShowModalActiveCard, activeCard?._id])
 
   const onUpdateCardTitle = (newTitle) => {
     callApiUpdateCard({ title: newTitle.trim() })
@@ -293,6 +310,103 @@ function ActiveCard() {
               />
             </Box>
 
+            {/* Hộp thoại chọn ngày giờ */}
+            <Dialog open={openDateDialog} onClose={() => setOpenDateDialog(false)}>
+              <DialogTitle>Chọn ngày & giờ hết hạn</DialogTitle>
+              <DialogContent sx={{ mt: 1, pt: 2 }}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    value={selectedDate}
+                    onChange={(newValue) => setSelectedDate(newValue)}
+                    ampm={false}
+                    disablePast
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        helperText: 'Thời hạn phải lớn hơn hiện tại ít nhất 1 tiếng',
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenDateDialog(false)}>Hủy</Button>
+                <Button
+                  variant="contained"
+                  onClick={async () => {
+                    const now = dayjs()
+                    if (selectedDate.isBefore(now.add(1, 'hour'))) {
+                      setError('Vui lòng chọn thời gian lớn hơn hiện tại ít nhất 1 tiếng!')
+                      return
+                    }
+
+                    setFinalDate(selectedDate)
+                    setOpenDateDialog(false)
+
+                    // Gọi API cập nhật backend
+                    if (activeCard?._id) {
+                      try {
+                        await updateCardDetailsAPI(activeCard._id, { dueDate: selectedDate.toDate() })
+                        // Cập nhật redux
+                        dispatch(updateCurrentActiveCard({
+                          ...activeCard,
+                          dueDate: selectedDate.toDate()
+                        }))
+                        dispatch(updateCardInBoard({
+                          ...activeCard,
+                          dueDate: selectedDate.toDate()
+                        }))
+                      } catch (err) {
+                        console.error('Update dueDate failed:', err)
+                        setError('Cập nhật thời hạn thất bại!')
+                      }
+                    }
+                  }}
+                >
+                  Xác nhận
+                </Button>
+
+              </DialogActions>
+            </Dialog>
+
+            {/* Snackbar báo lỗi */}
+            <Snackbar
+              open={!!error}
+              autoHideDuration={3000}
+              onClose={() => setError('')}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+              <Alert severity="error" onClose={() => setError('')}>
+                {error}
+              </Alert>
+            </Snackbar>
+
+            {finalDate && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Thời hạn
+                </Typography>
+                <Chip
+                  icon={<WatchLaterOutlinedIcon />}
+                  label={dayjs(finalDate).format('HH:mm DD/MM/YYYY')}
+                  sx={{
+                    bgcolor:
+                      dayjs(finalDate).isBefore(dayjs()) ? '#ffdddd'
+                        : dayjs(finalDate).diff(dayjs(), 'hour') < 24 ? '#fff0d6'
+                          : '#e5f7e5',
+                    color:
+                      dayjs(finalDate).isBefore(dayjs()) ? '#c62828'
+                        : dayjs(finalDate).diff(dayjs(), 'hour') < 24 ? '#ef6c00'
+                          : '#2e7d32',
+                    fontWeight: 500,
+                  }}
+                />
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                  (Còn {dayjs(finalDate).fromNow(true)})
+                </Typography>
+              </Box>
+            )}
+
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <SubjectRoundedIcon />
@@ -306,13 +420,13 @@ function ActiveCard() {
               />
             </Box>
             <Box sx={{ mb: 3 }}>
-                  <CardAttachmentList
-                    cardId={activeCard?._id}
-                    attachments={activeCard?.attachments}
-                  />
-              </Box>
-              
-              {/* Activity */}
+              <CardAttachmentList
+                cardId={activeCard?._id}
+                attachments={activeCard?.attachments}
+              />
+            </Box>
+
+            {/* Activity */}
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <DvrOutlinedIcon />
@@ -389,7 +503,10 @@ function ActiveCard() {
 
               <SidebarItem><LocalOfferOutlinedIcon fontSize="small" />Labels</SidebarItem>
               <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
-              <SidebarItem><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
+              <SidebarItem onClick={() => setOpenDateDialog(true)} sx={{ cursor: 'pointer' }}>
+                <WatchLaterOutlinedIcon fontSize="small" />
+                <span>Dates</span>
+              </SidebarItem>
               <SidebarItem><AutoFixHighOutlinedIcon fontSize="small" />Custom Fields</SidebarItem>
             </Stack>
 

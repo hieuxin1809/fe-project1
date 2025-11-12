@@ -25,35 +25,40 @@ export const activeCardSlice = createSlice({
     },
     // sua phan comment redux
     updateCurrentActiveCard: (state, action) => {
-    const updatedCardData = action.payload
+      const updatedCardData = action.payload
 
-    // Ngăn chặn nếu payload là null/undefined
-    if (!updatedCardData) {
+      // Ngăn chặn nếu payload là null/undefined
+      if (!updatedCardData) {
         console.error('Update payload is missing or null, skipping update.')
-        return 
-    }
+        return
+      }
 
-    // ✨ LOGIC AN TOÀN: Hợp nhất dữ liệu mới với dữ liệu cũ
-    // Điều này đảm bảo:
-    // 1. Các trường cũ (như _id, columnId, boardId) KHÔNG bị mất.
-    // 2. Các trường mới (như comments, title) được ghi đè.
-    const mergedCard = {
+      // ✨ LOGIC AN TOÀN: Hợp nhất dữ liệu mới với dữ liệu cũ
+      // Điều này đảm bảo:
+      // 1. Các trường cũ (như _id, columnId, boardId) KHÔNG bị mất.
+      // 2. Các trường mới (như comments, title) được ghi đè.
+      const mergedCard = {
         ...state.currentActiveCard, // <-- Luôn giữ lại ID và dữ liệu cũ
         ...updatedCardData          // <-- Ghi đè bằng dữ liệu mới
-    }
-    
-    // Cập nhật state nếu object đã hợp nhất có ID
-    if (mergedCard._id) {
+      }
+
+      // Cập nhật state nếu object đã hợp nhất có ID
+      if (mergedCard._id) {
         state.currentActiveCard = mergedCard
-    } else {
+      } else {
         // Trường hợp này chỉ xảy ra nếu state ban đầu là null và payload không có ID
         console.error('Error: activeCard ID was lost during the merge process.')
+      }
+    },
+    setCardDueDate: (state, action) => {
+      const { dueDate } = action.payload
+      if (!state.currentActiveCard) return
+      state.currentActiveCard.dueDate = dueDate
     }
-}
   },
   // ExtraReducers: Xử lý dữ liệu bất đồng bộ
   // eslint-disable-next-line no-unused-vars
-  extraReducers: (builder) => {}
+  extraReducers: (builder) => { }
 })
 
 // Action creators are generated for each case reducer function
@@ -62,7 +67,8 @@ export const activeCardSlice = createSlice({
 export const {
   clearAndHideCurrentActiveCard,
   updateCurrentActiveCard,
-  showModalActiveCard
+  showModalActiveCard,
+  setCardDueDate
 } = activeCardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
