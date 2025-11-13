@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert, Chip } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert, Chip, Menu, MenuItem, ListItemIcon, Avatar, ListItemText } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
@@ -8,6 +8,12 @@ import 'dayjs/locale/vi'
 
 dayjs.extend(relativeTime)
 dayjs.locale('vi')
+
+import TextField from '@mui/material/TextField';
+import { v4 as uuidv4 } from 'uuid';
+
+import CheckIcon from '@mui/icons-material/Check';
+import Checklist from './Checklist';
 
 import Box from '@mui/material/Box'
 import Modal from '@mui/material/Modal'
@@ -47,10 +53,10 @@ import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
   updateCurrentActiveCard,
-  selectIsShowModalActiveCard
+  selectIsShowModalActiveCard,
 } from '~/redux/activeCard/activeCardSlice'
 import { updateCardDetailsAPI } from '~/apis'
-import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice';
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { setCardDueDate } from '~/redux/activeCard/activeCardSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
@@ -85,15 +91,25 @@ const SidebarItem = styled(Box)(({ theme }) => ({
  * Note: Modal là một low-component mà bọn MUI sử dụng bên trong những thứ như Dialog, Drawer, Menu, Popover. Ở đây dĩ nhiên chúng ta có thể sử dụng Dialog cũng không thành vấn đề gì, nhưng sẽ sử dụng Modal để dễ linh hoạt tùy biến giao diện từ con số 0 cho phù hợp với mọi nhu cầu nhé.
  */
 function ActiveCard() {
-  const dispatch = useDispatch()
-  const activeCard = useSelector(selectCurrentActiveCard)
-  const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard)
-  const currentUser = useSelector(selectCurrentUser)
+  const dispatch = useDispatch();
+  const activeCard = useSelector(selectCurrentActiveCard);
+  const activeBoard = useSelector(selectCurrentActiveBoard); // <-- Lấy board
+  const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard);
+  const currentUser = useSelector(selectCurrentUser);
 
-  const [openDateDialog, setOpenDateDialog] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'))
-  const [finalDate, setFinalDate] = useState(activeCard?.dueDate ? dayjs(activeCard.dueDate) : null)
-  const [error, setError] = useState('')
+  const [openDateDialog, setOpenDateDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'));
+  const [finalDate, setFinalDate] = useState(activeCard?.dueDate ? dayjs(activeCard.dueDate) : null);
+  const [error, setError] = useState('');
+
+  const checklists = activeCard?.checklists || [];
+  const [newChecklistTitle, setNewChecklistTitle] = useState('');
+  const [openNewChecklistDialog, setOpenNewChecklistDialog] = useState(false);
+
+  const [isItemDatePickerOpen, setIsItemDatePickerOpen] = useState(false);
+  const [itemSelectedDate, setItemSelectedDate] = useState(dayjs().add(1, 'hour'));
+  const [isAssignMenuOpen, setIsAssignMenuOpen] = useState(false);
+  const [targetChecklistItem, setTargetChecklistItem] = useState(null);
 
   // Không dùng biến State để check đóng mở Modal nữa vì chúng ta sẽ check theo cái biến isShowModalActiveCard trong redux
   // const [isOpen, setIsOpen] = useState(true)
@@ -249,6 +265,96 @@ function ActiveCard() {
     callApiUpdateCard({ incomingMemberInfo })
   }
 
+  const handleOpenAssignMenu = (anchorEl, item, checklistId) => {
+    setTargetChecklistItem({ anchorEl, itemId: item._id, checklistId, currentItem: item });
+    setIsAssignMenuOpen(true);
+  };
+
+  const handleOpenDatePicker = (item, checklistId) => {
+    setTargetChecklistItem({ itemId: item._id, checklistId, currentItem: item });
+    setItemSelectedDate(item.dueDate ? dayjs(item.dueDate) : dayjs().add(1, 'hour'));
+    setIsItemDatePickerOpen(true);
+  };
+
+  // --- HÀM MỚI: Đóng Dialog/Menu ---
+  const handleCloseAssignMenu = () => {
+    setIsAssignMenuOpen(false);
+    setTargetChecklistItem(null);
+  };
+
+  const handleCloseDatePicker = () => {
+    setIsItemDatePickerOpen(false);
+    setTargetChecklistItem(null);
+  };
+
+  // --- HÀM MỚI: Xử lý Logic API (Khi xác nhận) ---
+  const handleSetItemDueDate = async () => {
+    if (!targetChecklistItem) return;
+
+    const { checklistId, itemId } = targetChecklistItem;
+    const newDueDate = itemSelectedDate.toDate();
+
+    const newChecklistsArray = checklists.map(c => {
+      if (c._id === checklistId) {
+        const newItems = c.items.map(i => {
+          if (i._id === itemId) {
+            return { ...i, dueDate: newDueDate };
+          }
+          return i;
+        });
+        return { ...c, items: newItems };
+      }
+      return c;
+    });
+
+    await callApiUpdateCard({ checklists: newChecklistsArray });
+    handleCloseDatePicker();
+  };
+
+  const handleToggleAssignMember = async (memberId) => {
+    if (!targetChecklistItem) return;
+
+    const { checklistId, itemId, currentItem } = targetChecklistItem;
+    const currentAssignedIds = currentItem.assignedMemberIds || [];
+
+    const isAssigned = currentAssignedIds.includes(memberId);
+    const newAssignedIds = isAssigned
+      ? currentAssignedIds.filter(id => id !== memberId)
+      : [...currentAssignedIds, memberId];
+
+    const newChecklistsArray = checklists.map(c => {
+      if (c._id === checklistId) {
+        const newItems = c.items.map(i => {
+          if (i._id === itemId) {
+            return { ...i, assignedMemberIds: newAssignedIds };
+          }
+          return i;
+        });
+        return { ...c, items: newItems };
+      }
+      return c;
+    });
+
+    await callApiUpdateCard({ checklists: newChecklistsArray });
+
+    // Cập nhật state local để menu re-render dấu check
+    setTargetChecklistItem({
+      ...targetChecklistItem,
+      currentItem: { ...currentItem, assignedMemberIds: newAssignedIds }
+    });
+  };
+
+  // --- Lấy danh sách member của CARD ---
+  // const cardMembers = (activeBoard?.members || []).filter(m =>
+  //   (activeCard?.memberIds || []).includes(m._id)
+  // );
+  const allUsersOnBoard = activeBoard?.FE_allUsers || []; // <-- Lấy nguồn đúng
+
+  // Lọc từ nguồn đúng
+  const cardMembers = allUsersOnBoard.filter(m =>
+    (activeCard?.memberIds || []).includes(m._id)
+  );
+
   return (
     <Modal
       disableScrollLock
@@ -369,6 +475,45 @@ function ActiveCard() {
               </DialogActions>
             </Dialog>
 
+            {/* Hộp thoại thêm checklist */}
+            <Dialog open={openNewChecklistDialog} onClose={() => setOpenNewChecklistDialog(false)}>
+              <DialogTitle>Thêm Checklist</DialogTitle>
+              <DialogContent>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  label="Tên checklist"
+                  value={newChecklistTitle}
+                  onChange={(e) => setNewChecklistTitle(e.target.value)}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenNewChecklistDialog(false)}>Hủy</Button>
+                <Button
+                  variant="contained"
+                  onClick={async () => {
+                    if (!newChecklistTitle.trim()) return;
+                    const newChecklist = {
+                      _id: uuidv4(),
+                      title: newChecklistTitle.trim(),
+                      progress: 0,
+                      items: []
+                    };
+
+                    const updatedCard = await callApiUpdateCard({
+                      checklists: [...checklists, newChecklist]
+                    });
+
+                    dispatch(updateCurrentActiveCard(updatedCard));
+                    setNewChecklistTitle('');
+                    setOpenNewChecklistDialog(false);
+                  }}
+                >
+                  OK
+                </Button>
+              </DialogActions>
+            </Dialog>
+
             {/* Snackbar báo lỗi */}
             <Snackbar
               open={!!error}
@@ -425,6 +570,20 @@ function ActiveCard() {
                 attachments={activeCard?.attachments}
               />
             </Box>
+
+            {checklists.map((checklist) => (
+              <Checklist
+                key={checklist._id}
+                checklist={checklist}
+                callApiUpdateCard={callApiUpdateCard}
+                currentChecklists={checklists}
+
+                // Truyền props mới xuống
+                onOpenAssignMenu={handleOpenAssignMenu}
+                onOpenDatePicker={handleOpenDatePicker}
+                cardMembers={cardMembers}
+              />
+            ))}
 
             {/* Activity */}
             <Box sx={{ mb: 3 }}>
@@ -502,7 +661,10 @@ function ActiveCard() {
               </SidebarItem>
 
               <SidebarItem><LocalOfferOutlinedIcon fontSize="small" />Labels</SidebarItem>
-              <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
+              <SidebarItem onClick={() => setOpenNewChecklistDialog(true)}>
+                <TaskAltOutlinedIcon fontSize="small" />Checklist
+              </SidebarItem>
+
               <SidebarItem onClick={() => setOpenDateDialog(true)} sx={{ cursor: 'pointer' }}>
                 <WatchLaterOutlinedIcon fontSize="small" />
                 <span>Dates</span>
@@ -531,8 +693,57 @@ function ActiveCard() {
             </Stack>
           </Grid>
         </Grid>
+
+        <Dialog open={isItemDatePickerOpen} onClose={handleCloseDatePicker}>
+          <DialogTitle>Chọn ngày & giờ hết hạn (Item)</DialogTitle>
+          <DialogContent sx={{ mt: 1, pt: 2 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                value={itemSelectedDate}
+                onChange={(newValue) => setItemSelectedDate(newValue)}
+                ampm={false}
+                disablePast
+              />
+            </LocalizationProvider>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDatePicker}>Hủy</Button>
+            <Button variant="contained" onClick={handleSetItemDueDate}>
+              Xác nhận
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Menu gán member cho ITEM */}
+        <Menu
+          open={isAssignMenuOpen}
+          anchorEl={targetChecklistItem?.anchorEl}
+          onClose={handleCloseAssignMenu}
+        >
+          <Typography sx={{ fontWeight: 600, px: 2, pb: 1 }}>Gán thành viên</Typography>
+          {cardMembers.length === 0 && (
+            <MenuItem disabled>Không có thành viên nào trong card này</MenuItem>
+          )}
+          {cardMembers.map(member => {
+            const isAssigned = targetChecklistItem?.currentItem?.assignedMemberIds.includes(member._id);
+            return (
+              <MenuItem key={member._id} onClick={() => handleToggleAssignMember(member._id)}>
+                <ListItemIcon>
+                  <Avatar sx={{ width: 28, height: 28 }} src={member.avatar} />
+                </ListItemIcon>
+                <ListItemText>{member.displayName}</ListItemText>
+                {isAssigned && (
+                  <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
+                    <CheckIcon fontSize="small" />
+                  </ListItemIcon>
+                )}
+              </MenuItem>
+            );
+          })}
+        </Menu>
       </Box>
     </Modal>
   )
 }
+
 export default ActiveCard
