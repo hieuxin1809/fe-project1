@@ -25,35 +25,101 @@ export const activeCardSlice = createSlice({
     },
     // sua phan comment redux
     updateCurrentActiveCard: (state, action) => {
-    const updatedCardData = action.payload
+      const updatedCardData = action.payload
 
-    // Ngăn chặn nếu payload là null/undefined
-    if (!updatedCardData) {
+      // Ngăn chặn nếu payload là null/undefined
+      if (!updatedCardData) {
         console.error('Update payload is missing or null, skipping update.')
-        return 
-    }
+        return
+      }
 
-    // ✨ LOGIC AN TOÀN: Hợp nhất dữ liệu mới với dữ liệu cũ
-    // Điều này đảm bảo:
-    // 1. Các trường cũ (như _id, columnId, boardId) KHÔNG bị mất.
-    // 2. Các trường mới (như comments, title) được ghi đè.
-    const mergedCard = {
+      // ✨ LOGIC AN TOÀN: Hợp nhất dữ liệu mới với dữ liệu cũ
+      // Điều này đảm bảo:
+      // 1. Các trường cũ (như _id, columnId, boardId) KHÔNG bị mất.
+      // 2. Các trường mới (như comments, title) được ghi đè.
+      const mergedCard = {
         ...state.currentActiveCard, // <-- Luôn giữ lại ID và dữ liệu cũ
         ...updatedCardData          // <-- Ghi đè bằng dữ liệu mới
-    }
-    
-    // Cập nhật state nếu object đã hợp nhất có ID
-    if (mergedCard._id) {
+      }
+
+      // Cập nhật state nếu object đã hợp nhất có ID
+      if (mergedCard._id) {
         state.currentActiveCard = mergedCard
-    } else {
+      } else {
         // Trường hợp này chỉ xảy ra nếu state ban đầu là null và payload không có ID
         console.error('Error: activeCard ID was lost during the merge process.')
-    }
-}
+      }
+    },
+    setCardDueDate: (state, action) => {
+      const { dueDate } = action.payload
+      if (!state.currentActiveCard) return
+      state.currentActiveCard.dueDate = dueDate
+    },
+    addChecklistToActiveCard: (state, action) => {
+      const checklist = action.payload
+      if (!state.currentActiveCard.checklists) state.currentActiveCard.checklists = []
+      state.currentActiveCard.checklists.push(checklist)
+    },
+    deleteChecklistFromActiveCard: (state, action) => {
+      const checklistId = action.payload
+      state.currentActiveCard.checklists = state.currentActiveCard.checklists.filter(
+        c => c._id !== checklistId
+      )
+    },
+    addItemToChecklist: (state, action) => {
+      const { checklistId, item } = action.payload
+      const checklist = state.currentActiveCard.checklists.find(c => c._id === checklistId)
+      if (checklist) {
+        if (!checklist.items) checklist.items = []
+        checklist.items.push(item)
+      }
+    },
+    updateChecklistItem: (state, action) => {
+      const { checklistId, itemId, updateData } = action.payload
+      const checklist = state.currentActiveCard.checklists.find(c => c._id === checklistId)
+      if (checklist && checklist.items) {
+        const itemIndex = checklist.items.findIndex(i => i._id === itemId)
+        if (itemIndex >= 0) {
+          checklist.items[itemIndex] = {
+            ...checklist.items[itemIndex],
+            ...updateData
+          }
+        }
+      }
+    },
+    deleteChecklistItem: (state, action) => {
+      const { checklistId, itemId } = action.payload
+      const checklist = state.currentActiveCard.checklists.find(c => c._id === checklistId)
+      if (checklist && checklist.items) {
+        checklist.items = checklist.items.filter(i => i._id !== itemId)
+      }
+    },
+    toggleChecklistItemDone: (state, action) => {
+      const { checklistId, itemId } = action.payload;
+      const checklist = state.currentActiveCard.checklists.find(c => c._id === checklistId);
+
+      if (!checklist || !checklist.items) return; // Thoát nếu không tìm thấy
+
+      // 1. Cập nhật trạng thái 'isDone' của item
+      const item = checklist.items.find(i => i._id === itemId);
+      if (item) {
+        item.isDone = !item.isDone;
+      }
+
+      // 2. Tính toán lại progress
+      const totalItemsCount = checklist.items.length;
+      if (totalItemsCount === 0) {
+        checklist.progress = 0;
+      } else {
+        const doneItemsCount = checklist.items.filter(i => i.isDone).length;
+        // Dùng Math.round để có số % nguyên
+        checklist.progress = Math.round((doneItemsCount / totalItemsCount) * 100);
+      }
+    },
   },
   // ExtraReducers: Xử lý dữ liệu bất đồng bộ
   // eslint-disable-next-line no-unused-vars
-  extraReducers: (builder) => {}
+  extraReducers: (builder) => { }
 })
 
 // Action creators are generated for each case reducer function
@@ -62,7 +128,14 @@ export const activeCardSlice = createSlice({
 export const {
   clearAndHideCurrentActiveCard,
   updateCurrentActiveCard,
-  showModalActiveCard
+  showModalActiveCard,
+  setCardDueDate,
+  addChecklistToActiveCard,
+  deleteChecklistFromActiveCard,
+  addItemToChecklist,
+  updateChecklistItem,
+  deleteChecklistItem,
+  toggleChecklistItemDone
 } = activeCardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
