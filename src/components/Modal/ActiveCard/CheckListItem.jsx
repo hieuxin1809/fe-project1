@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     Box, Checkbox, Stack, IconButton, Button, TextField,
     Typography, Avatar, AvatarGroup, Chip,
-    // --- Thêm import cho Dialog/Menu CỤC BỘ ---
     Dialog, DialogTitle, DialogContent, DialogActions,
     Menu, MenuItem, ListItemIcon, ListItemText
 } from '@mui/material';
@@ -10,10 +9,9 @@ import {
     PersonAdd as PersonAddIcon,
     AccessTime as AccessTimeIcon,
     Close as CloseIcon,
-    Check as CheckIcon // Thêm CheckIcon
+    Check as CheckIcon
 } from '@mui/icons-material';
-import dayjs from 'dayjs';
-// --- Thêm import cho Date Picker ---
+import dayjs from 'dayjs'; // Đảm bảo dayjs được import
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -26,32 +24,33 @@ function ChecklistItem({
     currentChecklists,
     isEditing,
     onSetEditing,
-    onOpenAssignMenu, // Prop này dùng cho VIEW MODE (bị ẩn khi hover)
-    onOpenDatePicker, // Prop này dùng cho VIEW MODE (bị ẩn khi hover)
+    onOpenAssignMenu,
+    onOpenDatePicker,
     cardMembers
 }) {
     
+    // ... (Toàn bộ logic state, hooks, và các hàm xử lý:
+    // handleSave, handleCancel, handleDelete, handleToggleDone...
+    // ... GIỮ NGUYÊN ...
+    // ... )
+
     // --- STATE CHO CHẾ ĐỘ EDIT ---
-    // State "nháp" cho các giá trị đang edit
     const [editTitle, setEditTitle] = useState(item.title);
     const [editDueDate, setEditDueDate] = useState(item.dueDate);
     const [editAssignedIds, setEditAssignedIds] = useState(item.assignedMemberIds || []);
     
-    // State cho Dialog/Menu CỤC BỘ (dùng trong edit mode)
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour')); // State tạm cho picker
+    const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'));
     const [assignMenuAnchorEl, setAssignMenuAnchorEl] = useState(null);
 
-    // Reset state "nháp" mỗi khi bắt đầu edit (hoặc khi item prop thay đổi)
     useEffect(() => {
         if (isEditing) {
             setEditTitle(item.title);
             setEditDueDate(item.dueDate);
             setEditAssignedIds(item.assignedMemberIds || []);
-            // Set ngày cho picker
             setSelectedDate(dayjs(item.dueDate || Date.now() + 3600*1000));
         }
-    }, [isEditing, item]); // Chạy khi 'isEditing' = true
+    }, [isEditing, item]);
 
     // --- HÀM XỬ LÝ CỤC BỘ (CHO EDIT MODE) ---
     const handleToggleMember = (memberId) => {
@@ -65,7 +64,6 @@ function ChecklistItem({
         setEditDueDate(selectedDate.toDate());
         setIsDatePickerOpen(false);
     };
-    // ------------------------------------------
 
     const calculateNewProgress = (items) => {
         const totalItemsCount = items.length;
@@ -74,18 +72,15 @@ function ChecklistItem({
         return Math.round((doneItemsCount / totalItemsCount) * 100);
     };
     
-    // --- SỬA LẠI HÀM SAVE ---
     const handleSave = async () => {
         if (!editTitle.trim()) {
-            onSetEditing(null); // Vẫn đóng nếu title rỗng
+            onSetEditing(null);
             return;
         }
-
         const newChecklistsArray = currentChecklists.map(c => {
             if (c._id === checklistId) {
                 const newItems = c.items.map(i => {
                     if (i._id === item._id) {
-                        // Gói tất cả state "nháp" vào đây
                         return { 
                             ...i, 
                             title: editTitle.trim(),
@@ -95,23 +90,19 @@ function ChecklistItem({
                     }
                     return i;
                 });
-                // Khi SỬA item, KHÔNG CẦN TÍNH LẠI PROGRESS
-                // (chỉ khi toggle 'done' hoặc 'delete' mới cần)
                 return { ...c, items: newItems };
             }
             return c;
         });
-
         await callApiUpdateCard({ checklists: newChecklistsArray });
-        onSetEditing(null); // Đóng form
+        onSetEditing(null);
     };
 
     const handleCancel = () => {
-        onSetEditing(null); // Hủy, 'useEffect' sẽ reset state lần sau
+        onSetEditing(null);
     };
 
     const handleDelete = async () => {
-        // ... (Logic giữ nguyên)
         const newChecklistsArray = currentChecklists.map(c => {
             if (c._id === checklistId) {
                 const newItems = c.items.filter(i => i._id !== item._id);
@@ -124,7 +115,6 @@ function ChecklistItem({
     };
 
     const handleToggleDone = async () => {
-        // ... (Logic giữ nguyên)
         const newChecklistsArray = currentChecklists.map(c => {
             if (c._id === checklistId) {
                 const newItems = c.items.map(i => {
@@ -144,7 +134,7 @@ function ChecklistItem({
 
     // === GIAO DIỆN CHỈNH SỬA (khi isEditing = true) ===
     if (isEditing) {
-        // Lấy thông tin member được gán (từ state "nháp")
+        // ... (Code cho chế độ EDIT MODE giữ nguyên) ...
         const assignedMembers = (cardMembers || []).filter(m => 
             editAssignedIds.includes(m._id)
         );
@@ -152,15 +142,11 @@ function ChecklistItem({
         return (
             <Box sx={{ mt: 1, p: 1, border: '1px solid #ddd', borderRadius: 1.5 }}>
                 <TextField
-                    fullWidth
-                    size="small"
-                    value={editTitle}
+                    fullWidth size="small" value={editTitle}
                     onChange={e => setEditTitle(e.target.value)}
-                    placeholder="Nhập tên item"
-                    autoFocus
+                    placeholder="Nhập tên item" autoFocus
                 />
                 
-                {/* Hiển thị các lựa chọn (member và date "nháp") */}
                 <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: 'center' }}>
                     <AvatarGroup 
                         max={3}
@@ -175,14 +161,13 @@ function ChecklistItem({
                         <Chip
                             size="small"
                             icon={<AccessTimeIcon fontSize="small" />}
-                            label={dayjs(editDueDate).format('DD/MM')}
-                            onDelete={() => setEditDueDate(null)} // Cho phép xóa
+                            label={dayjs(editDueDate).format('HH:mm DD/MM/YYYY')} // <-- Sửa format
+                            onDelete={() => setEditDueDate(null)}
                             sx={{ fontSize: '0.75rem' }}
                         />
                     )}
                 </Stack>
             
-                {/* Hàng nút điều khiển */}
                 <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: 'space-between' }}>
                     <Box>
                         <Button size="small" variant="contained" onClick={handleSave}>Save</Button>
@@ -190,26 +175,21 @@ function ChecklistItem({
                     </Box>
                     <Box sx={{ ml: 2, mr: 2 }}>
                         <Button 
-                            variant="text" 
-                            size='small' 
-                            startIcon={<PersonAddIcon />}
-                            onClick={(e) => setAssignMenuAnchorEl(e.currentTarget)} // <-- Mở Menu CỤC BỘ
+                            variant="text" size='small' startIcon={<PersonAddIcon />}
+                            onClick={(e) => setAssignMenuAnchorEl(e.currentTarget)}
                         >
                             Assign
                         </Button>
                         <Button 
-                            variant="text" 
-                            size='small' 
-                            startIcon={<AccessTimeIcon />}
-                            onClick={() => setIsDatePickerOpen(true)} // <-- Mở Dialog CỤC BỘ
+                            variant="text" size='small' startIcon={<AccessTimeIcon />}
+                            onClick={() => setIsDatePickerOpen(true)}
                         >
                             Due Date
                         </Button>
                     </Box>
                 </Stack>
 
-                {/* --- CÁC DIALOG/MENU CỤC BỘ (Giống hệt AddItemInput) --- */}
-                
+                {/* ... (Code Menu và Dialog CỤC BỘ giữ nguyên) ... */}
                 <Menu
                     open={Boolean(assignMenuAnchorEl)}
                     anchorEl={assignMenuAnchorEl}
@@ -233,7 +213,6 @@ function ChecklistItem({
                         );
                     })}
                 </Menu>
-
                 <Dialog open={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)}>
                     <DialogTitle>Chọn ngày & giờ hết hạn (Item)</DialogTitle>
                     <DialogContent sx={{ mt: 1, pt: 2 }}>
@@ -253,7 +232,6 @@ function ChecklistItem({
                         </Button>
                     </DialogActions>
                 </Dialog>
-
             </Box>
         );
     }
@@ -264,39 +242,67 @@ function ChecklistItem({
         (item.assignedMemberIds || []).includes(m._id)
     );
 
+    /**
+     * ✨ HÀM RENDER CHIP ĐÃ ĐƯỢC CẬP NHẬT ✨
+     */
     const renderDueDateChip = () => {
-        // ... (Logic render chip Vẫn giữ nguyên)
         if (!item.dueDate) return null;
+
         const dueDate = dayjs(item.dueDate);
         const now = dayjs();
-        let chipStyles = {
-            label: dueDate.format('DD/MM'), bgColor: 'transparent', textColor: 'text.secondary',
-            iconColor: 'text.secondary', textDecoration: 'none'
-        };
+        
+        // Cập nhật format
+        const label = dueDate.format('HH:mm DD/MM/YYYY');
+        
+        let chipStyles = {};
+
         if (item.isDone) {
+            // 1. HOÀN THÀNH (Ưu tiên cao nhất): Xanh lá, gạch ngang
             chipStyles = {
-                label: dueDate.format('DD/MM'), bgColor: '#e5f7e5', textColor: '#2e7d32',
-                iconColor: '#2e7d32', textDecoration: 'line-through'
+                bgColor: '#e5f7e5', // Light green
+                textColor: '#2e7d32', // Dark green
+                iconColor: '#2e7d32',
+                textDecoration: 'line-through'
             };
         } else if (dueDate.isBefore(now)) {
+            // 2. QUÁ HẠN: Đỏ
             chipStyles = {
-                label: `${dueDate.format('DD/MM')} (Overdue)`, bgColor: '#ffdddd', textColor: '#c62828',
-                iconColor: '#c62828', textDecoration: 'none'
+                bgColor: '#ffdddd', // Light red
+                textColor: '#c62828', // Dark red
+                iconColor: '#c62828',
+                textDecoration: 'none'
             };
         } else if (dueDate.diff(now, 'hour') < 24) {
+            // 3. SẮP HẾT HẠN (trong 24h): Cam
             chipStyles = {
-                label: `${dueDate.format('DD/MM')} (Due soon)`, bgColor: '#fff0d6', textColor: '#ef6c00',
-                iconColor: '#ef6c00', textDecoration: 'none'
+                bgColor: '#fff0d6', // Light orange
+                textColor: '#ef6c00', // Dark orange
+                iconColor: '#ef6c00',
+                textDecoration: 'none'
+            };
+        } else {
+            // 4. CÒN HẠN (giống logic card): Xanh lá
+            chipStyles = {
+                bgColor: '#e5f7e5', // Light green
+                textColor: '#2e7d32', // Dark green
+                iconColor: '#2e7d32',
+                textDecoration: 'none'
             };
         }
+
         return (
             <Chip
                 size="small"
                 icon={<AccessTimeIcon fontSize="small" sx={{ color: chipStyles.iconColor }} />}
-                label={chipStyles.label}
+                label={label} // Dùng format mới
                 sx={{
-                    fontSize: '0.75rem', backgroundColor: chipStyles.bgColor, color: chipStyles.textColor,
-                    textDecoration: chipStyles.textDecoration, fontWeight: 500
+                    fontSize: '0.75rem',
+                    backgroundColor: chipStyles.bgColor,
+                    color: chipStyles.textColor,
+                    textDecoration: chipStyles.textDecoration,
+                    fontWeight: 500,
+                    // Cho phép chip thu nhỏ nếu không đủ chỗ
+                    maxWidth: '100%'
                 }}
             />
         );
@@ -309,7 +315,7 @@ function ChecklistItem({
                 display: 'flex',
                 alignItems: 'center',
                 mt: 1,
-                // CSS hover (vẫn giữ nguyên)
+                // CSS hover (giữ nguyên)
                 '& .hover-buttons': {
                     display: 'none',
                 },
@@ -324,7 +330,7 @@ function ChecklistItem({
             />
 
             <Button
-                onClick={() => onSetEditing(item._id)} // <-- Bật chế độ edit
+                onClick={() => onSetEditing(item._id)}
                 sx={{
                     textTransform: 'none',
                     color: 'text.primary',
@@ -346,7 +352,8 @@ function ChecklistItem({
                 spacing={1}
                 sx={{
                     justifyContent: 'space-between',
-                    marginLeft: 'auto'
+                    marginLeft: 'auto',
+                    alignItems: 'center' // Căn giữa stack
                 }}
             >
                 {/* 1. Phần Info (luôn hiện) */}
@@ -358,20 +365,22 @@ function ChecklistItem({
                 >
                     <AvatarGroup 
                         max={3}
-                        sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' } }}
+                        sx={{
+                            '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' },
+                        }}
                     >
                         {assignedMembers.map(member => (
                             <Avatar key={member._id} alt={member.displayName} src={member.avatar} />
                         ))}
                     </AvatarGroup>
                     
+                    {/* Sử dụng hàm render chip đã cập nhật */}
                     {renderDueDateChip()}
                     
                 </Stack>
 
                 {/* 2. Phần Nút (hiện khi hover) */}
                 <Box className="hover-buttons">
-                    {/* Các nút này gọi hàm của ActiveCard (ông nội) */}
                     <IconButton size='small' aria-label="assign" onClick={(e) => onOpenAssignMenu(e.currentTarget, item, checklistId)}>
                         <PersonAddIcon fontSize="inherit" />
                     </IconButton>

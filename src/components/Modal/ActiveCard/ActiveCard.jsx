@@ -99,7 +99,7 @@ function ActiveCard() {
 
   const [openDateDialog, setOpenDateDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'));
-  const [finalDate, setFinalDate] = useState(activeCard?.dueDate ? dayjs(activeCard.dueDate) : null);
+  const [finalDate, setFinalDate] = useState(null);
   const [error, setError] = useState('');
 
   const checklists = activeCard?.checklists || [];
@@ -178,6 +178,16 @@ function ActiveCard() {
     }
     return updatedCard
   }
+
+  useEffect(() => {
+    // Cập nhật 'finalDate' BẤT CỨ KHI NÀO activeCard.dueDate thay đổi
+    if (activeCard?.dueDate) {
+      setFinalDate(dayjs(activeCard.dueDate));
+    } else {
+      setFinalDate(null); // Nếu card không có dueDate, set về null
+    }
+  }, [activeCard?.dueDate]); // <-- "Lắng nghe" sự thay đổi của dueDate
+
   useEffect(() => {
     // Đảm bảo activeCard và isShowModalActiveCard đã sẵn sàng
     if (!activeCard?._id) return
