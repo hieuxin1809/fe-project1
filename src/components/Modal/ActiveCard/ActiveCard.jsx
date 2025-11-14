@@ -639,9 +639,6 @@ function ActiveCard() {
                       <PersonOutlineOutlinedIcon fontSize="small" />
                       <span>Join</span>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CheckCircleIcon fontSize="small" sx={{ color: '#27ae60' }} />
-                    </Box>
                   </Box>
                 </SidebarItem>
               }
@@ -652,9 +649,6 @@ function ActiveCard() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <ImageOutlinedIcon fontSize="small" />
                     <span>Cover</span>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <CheckCircleIcon fontSize="small" sx={{ color: '#27ae60' }} />
                   </Box>
                 </Box>
                 <VisuallyHiddenInput type="file" onChange={onUploadCardCover} />
