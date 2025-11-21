@@ -186,6 +186,22 @@ export const activeBoardSlice = createSlice({
       if (state.currentActiveBoard && state.currentActiveBoard.labels) {
         const labelId = action.payload
         state.currentActiveBoard.labels = state.currentActiveBoard.labels.filter(l => l._id !== labelId)
+    },
+    removeMemberFromBoard: (state, action) => {
+      const { boardId, userId } = action.payload
+
+      // Chỉ cập nhật nếu đây là board đang mở
+      if (state.currentActiveBoard && state.currentActiveBoard._id === boardId) {
+        
+        // 1. Xóa user khỏi mảng members (nếu có)
+        state.currentActiveBoard.members = state.currentActiveBoard.members.filter(
+          m => m._id !== userId
+        )
+
+        // 2. Xóa user khỏi mảng FE_allUsers (để UI cập nhật)
+        state.currentActiveBoard.FE_allUsers = state.currentActiveBoard.FE_allUsers.filter(
+          u => u._id !== userId
+        )
       }
     }
   },
@@ -237,6 +253,8 @@ export const {
   updateLabelInBoard,
   deleteLabelFromBoard
 } = activeBoardSlice.actions
+  removeMemberFromBoard
+  } = activeBoardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
 export const selectCurrentActiveBoard = (state) => {
