@@ -64,104 +64,129 @@ export const activeBoardSlice = createSlice({
       }
     },
     updateCardOrderInSameColumn: (state, action) => { // <<< Tên action mới
-        const { columnId, cardOrderIds } = action.payload
-        
-        const column = state.currentActiveBoard.columns.find(c => c._id === columnId)
-        if (column) {
-            column.cardOrderIds = cardOrderIds
-            // Cập nhật lại mảng cards dựa trên thứ tự ID mới
-            column.cards = mapOrder(column.cards, cardOrderIds, '_id')
-        }
+      const { columnId, cardOrderIds } = action.payload
+
+      const column = state.currentActiveBoard.columns.find(c => c._id === columnId)
+      if (column) {
+        column.cardOrderIds = cardOrderIds
+        // Cập nhật lại mảng cards dựa trên thứ tự ID mới
+        column.cards = mapOrder(column.cards, cardOrderIds, '_id')
+      }
     },
     moveCardInReduxState: (state, action) => {
-    const { currentCardId, nextColumnId, dndOrderedColumns } = action.payload
+      const { currentCardId, nextColumnId, dndOrderedColumns } = action.payload
 
-    // 1. Cập nhật lại toàn bộ mảng columns và columnOrderIds
-    // (Vì dữ liệu gửi qua socket đã là state columns mới nhất sau DND)
-    state.currentActiveBoard.columns = dndOrderedColumns
-    state.currentActiveBoard.columnOrderIds = dndOrderedColumns.map(c => c._id)
-    
-    // 2. Cập nhật trường columnId mới cho Card bị di chuyển
-    const nextColumn = state.currentActiveBoard.columns.find(c => c._id === nextColumnId)
-    if (nextColumn) {
+      // 1. Cập nhật lại toàn bộ mảng columns và columnOrderIds
+      // (Vì dữ liệu gửi qua socket đã là state columns mới nhất sau DND)
+      state.currentActiveBoard.columns = dndOrderedColumns
+      state.currentActiveBoard.columnOrderIds = dndOrderedColumns.map(c => c._id)
+
+      // 2. Cập nhật trường columnId mới cho Card bị di chuyển
+      const nextColumn = state.currentActiveBoard.columns.find(c => c._id === nextColumnId)
+      if (nextColumn) {
         // Tìm Card trong cột mới để cập nhật columnId
         const movedCard = nextColumn.cards.find(c => c._id === currentCardId)
         if (movedCard) {
-            movedCard.columnId = nextColumnId
+          movedCard.columnId = nextColumnId
         }
-    }
-  },
-  addNewColumnFromSocket: (state, action) => {
-        const newColumn = action.payload
+      }
+    },
+    addNewColumnFromSocket: (state, action) => {
+      const newColumn = action.payload
 
-        // Logic tương tự như trong ListColumns.jsx: Thêm vào cuối mảng
-        state.currentActiveBoard.columns.push(newColumn)
-        state.currentActiveBoard.columnOrderIds.push(newColumn._id)
+      // Logic tương tự như trong ListColumns.jsx: Thêm vào cuối mảng
+      state.currentActiveBoard.columns.push(newColumn)
+      state.currentActiveBoard.columnOrderIds.push(newColumn._id)
     },
 
     // ✨ NEW REDUCER: Thêm Card nhận được qua Socket
     addNewCardFromSocket: (state, action) => {
-        const newCard = action.payload
+      const newCard = action.payload
 
-        // 1. Tìm Column đích
-        const column = state.currentActiveBoard.columns.find(c => c._id === newCard.columnId)
-        if (column) {
-            // 2. Nếu Column rỗng (đang có placeholder card), xóa nó đi
-            if (column.cards.some(card => card.FE_PlaceholderCard)) {
-                column.cards = []
-                column.cardOrderIds = []
-            }
-            
-            // 3. Thêm Card mới vào cuối mảng
-            column.cards.push(newCard)
-            column.cardOrderIds.push(newCard._id)
+      // 1. Tìm Column đích
+      const column = state.currentActiveBoard.columns.find(c => c._id === newCard.columnId)
+      if (column) {
+        // 2. Nếu Column rỗng (đang có placeholder card), xóa nó đi
+        if (column.cards.some(card => card.FE_PlaceholderCard)) {
+          column.cards = []
+          column.cardOrderIds = []
         }
+
+        // 3. Thêm Card mới vào cuối mảng
+        column.cards.push(newCard)
+        column.cardOrderIds.push(newCard._id)
+      }
     },
     moveColumnsFromSocket: (state, action) => {
-        const { dndOrderedColumns } = action.payload
-        
-        // Cập nhật lại toàn bộ mảng columns và columnOrderIds
-        state.currentActiveBoard.columns = dndOrderedColumns
-        state.currentActiveBoard.columnOrderIds = dndOrderedColumns.map(c => c._id)
+      const { dndOrderedColumns } = action.payload
+
+      // Cập nhật lại toàn bộ mảng columns và columnOrderIds
+      state.currentActiveBoard.columns = dndOrderedColumns
+      state.currentActiveBoard.columnOrderIds = dndOrderedColumns.map(c => c._id)
     },
     updateColumnTitleFromSocket: (state, action) => {
-        const updatedColumn = action.payload
-        const column = state.currentActiveBoard.columns.find(c => c._id === updatedColumn._id)
-        
-        if (column) {
-            // Cập nhật tất cả các trường (Title, etc.)
-            Object.keys(updatedColumn).forEach(key => {
-                column[key] = updatedColumn[key]
-            })
-        }
+      const updatedColumn = action.payload
+      const column = state.currentActiveBoard.columns.find(c => c._id === updatedColumn._id)
+
+      if (column) {
+        // Cập nhật tất cả các trường (Title, etc.)
+        Object.keys(updatedColumn).forEach(key => {
+          column[key] = updatedColumn[key]
+        })
+      }
     },
     removeColumnFromSocket: (state, action) => {
-        const { columnId } = action.payload
+      const { columnId } = action.payload
 
-        // Xử lý xóa column khỏi mảng columns
-        state.currentActiveBoard.columns = state.currentActiveBoard.columns.filter(c => c._id !== columnId)
-        
-        // Xử lý xóa columnId khỏi mảng columnOrderIds
-        state.currentActiveBoard.columnOrderIds = state.currentActiveBoard.columnOrderIds.filter(id => id !== columnId)
+      // Xử lý xóa column khỏi mảng columns
+      state.currentActiveBoard.columns = state.currentActiveBoard.columns.filter(c => c._id !== columnId)
+
+      // Xử lý xóa columnId khỏi mảng columnOrderIds
+      state.currentActiveBoard.columnOrderIds = state.currentActiveBoard.columnOrderIds.filter(id => id !== columnId)
     },
     addNewMemberToBoard: (state, action) => {
-        const { boardId, newMember } = action.payload
+      const { boardId, newMember } = action.payload
 
-        // Chỉ thêm nếu đây là Board đang được mở (đảm bảo state không null)
-        if (state.currentActiveBoard && state.currentActiveBoard._id === boardId) {
-            
-            // 1. Thêm User vào mảng members (nếu chưa tồn tại)
-            const memberExists = state.currentActiveBoard.members.some(m => m._id === newMember._id)
-            if (!memberExists) {
-                state.currentActiveBoard.members.push(newMember)
-            }
-            
-            // 2. Thêm User vào mảng FE_allUsers (nếu bạn dùng mảng này để hiển thị)
-            const allUserExists = state.currentActiveBoard.FE_allUsers.some(u => u._id === newMember._id)
-            if (!allUserExists) {
-                 state.currentActiveBoard.FE_allUsers.push(newMember)
-            }
+      // Chỉ thêm nếu đây là Board đang được mở (đảm bảo state không null)
+      if (state.currentActiveBoard && state.currentActiveBoard._id === boardId) {
+
+        // 1. Thêm User vào mảng members (nếu chưa tồn tại)
+        const memberExists = state.currentActiveBoard.members.some(m => m._id === newMember._id)
+        if (!memberExists) {
+          state.currentActiveBoard.members.push(newMember)
         }
+
+        // 2. Thêm User vào mảng FE_allUsers (nếu bạn dùng mảng này để hiển thị)
+        const allUserExists = state.currentActiveBoard.FE_allUsers.some(u => u._id === newMember._id)
+        if (!allUserExists) {
+          state.currentActiveBoard.FE_allUsers.push(newMember)
+        }
+      }
+    },
+    // ✨ ACTION MỚI: Thêm Label vào Board
+    addLabelToBoard: (state, action) => {
+      if (state.currentActiveBoard) {
+        // Nếu chưa có mảng labels thì tạo mới
+        if (!state.currentActiveBoard.labels) state.currentActiveBoard.labels = []
+        state.currentActiveBoard.labels.push(action.payload)
+      }
+    },
+    // ✨ ACTION MỚI: Cập nhật Label trong Board
+    updateLabelInBoard: (state, action) => {
+      if (state.currentActiveBoard && state.currentActiveBoard.labels) {
+        const updatedLabel = action.payload
+        const index = state.currentActiveBoard.labels.findIndex(l => l._id === updatedLabel._id)
+        if (index !== -1) {
+          state.currentActiveBoard.labels[index] = updatedLabel
+        }
+      }
+    },
+    // ✨ ACTION MỚI: Xóa Label khỏi Board
+    deleteLabelFromBoard: (state, action) => {
+      if (state.currentActiveBoard && state.currentActiveBoard.labels) {
+        const labelId = action.payload
+        state.currentActiveBoard.labels = state.currentActiveBoard.labels.filter(l => l._id !== labelId)
+      }
     }
   },
   // ExtraReducers: Nơi xử lý dữ liệu bất đồng bộ
@@ -196,9 +221,9 @@ export const activeBoardSlice = createSlice({
 // Action creators are generated for each case reducer function
 // Actions: Là nơi dành cho các components bên dưới gọi bằng dispatch() tới nó để cập nhật lại dữ liệu thông qua reducer (chạy đồng bộ)
 // Để ý ở trên thì không thấy properties actions đâu cả, bởi vì những cái actions này đơn giản là được thằng redux tạo tự động theo tên của reducer nhé.
-export const { 
+export const {
   updateCurrentActiveBoard,
-  updateCardInBoard ,
+  updateCardInBoard,
   moveCardInReduxState,
   updateCardOrderInSameColumn,
   addNewColumnFromSocket,
@@ -206,8 +231,12 @@ export const {
   moveColumnsFromSocket,
   removeColumnFromSocket,
   addNewMemberToBoard,
-  updateColumnTitleFromSocket
-  } = activeBoardSlice.actions
+  updateColumnTitleFromSocket,
+  
+  addLabelToBoard,
+  updateLabelInBoard,
+  deleteLabelFromBoard
+} = activeBoardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
 export const selectCurrentActiveBoard = (state) => {
