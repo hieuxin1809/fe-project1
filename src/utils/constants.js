@@ -22,15 +22,3 @@ export const CARD_MEMBER_ACTIONS = {
   ADD: 'ADD',
   REMOVE: 'REMOVE'
 }
-
-export const LABEL_COLORS = [
-  { color: '#2196f3', name: 'Blue' },      // Xanh dương
-  { color: '#4caf50', name: 'Green' },     // Xanh lá
-  { color: '#ff9800', name: 'Orange' },    // Cam
-  { color: '#f44336', name: 'Red' },       // Đỏ
-  { color: '#9c27b0', name: 'Purple' },    // Tím
-  { color: '#607d8b', name: 'Blue Grey' }, // Xám xanh
-  { color: '#795548', name: 'Brown' },     // Nâu
-  { color: '#e91e63', name: 'Pink' },      // Hồng
-  { color: '#009688', name: 'Teal' }       // Xanh ngọc
-]

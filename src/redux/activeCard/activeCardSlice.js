@@ -117,7 +117,6 @@ export const activeCardSlice = createSlice({
       }
     },
   },
-  
   // ExtraReducers: Xử lý dữ liệu bất đồng bộ
   // eslint-disable-next-line no-unused-vars
   extraReducers: (builder) => { }
