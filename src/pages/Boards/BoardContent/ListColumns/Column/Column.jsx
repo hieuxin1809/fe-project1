@@ -127,8 +127,7 @@ function Column({ column }) {
       // dialogProps: { maxWidth: 'lg' },
       // cancellationButtonProps: { color: 'primary' },
       // confirmationButtonProps: { color: 'success', variant: 'outlined' },
-      // description: 'Phải nhập chữ trungquandev thì mới được Confirm =))',
-      // confirmationKeyword: 'trungquandev'
+      // description: 'phai nhap thì mới được Confirm =))',
     }).then(() => {
       // Update cho chuẩn dữ liệu state Board
 
