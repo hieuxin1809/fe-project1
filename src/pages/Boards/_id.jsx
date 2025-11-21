@@ -25,21 +25,17 @@ import {
   updateColumnTitleFromSocket
 } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
-import { useParams , useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import PageLoadingSpinner from '~/components/Loading/PageLoadingSpinner'
 import ActiveCard from '~/components/Modal/ActiveCard/ActiveCard'
 import { socketIoInstance } from '~/socketClient'
-import { selectCurrentUser } from '~/redux/user/userSlice' // <-- 3. Import selector
-import { toast } from 'react-toastify' // <-- 4. Import toast
 
 
 function Board() {
   const dispatch = useDispatch()
-  const navigate = useNavigate() // <-- 5. Khởi tạo navigate
   // Không dùng State của component nữa mà chuyển qua dùng State của Redux
   // const [board, setBoard] = useState(null)
   const board = useSelector(selectCurrentActiveBoard)
-  const currentUser = useSelector(selectCurrentUser) // <-- 6. Lấy user hiện tại
 
   const { boardId } = useParams()
 
@@ -208,20 +204,6 @@ function Board() {
             dispatch(updateColumnTitleFromSocket(updatedColumn))
         }
     }
-    const onMemberRemoved = (data) => {
-      // Dispatch action để cập nhật Redux
-      const { boardId, userId } = data
-
-      // 7. Luôn dispatch để cập nhật UI (danh sách) cho TẤT CẢ mọi người
-      dispatch(removeMemberFromBoard({ boardId, userId }))
-
-      // 8. KIỂM TRA NẾU NGƯỜI BỊ ĐÁ LÀ MÌNH
-      if (currentUser && currentUser._id === userId) {
-        toast.warning('Bạn vừa bị xóa khỏi board này!', { autoClose: 3000 })
-        // Điều hướng về trang chủ
-        navigate('/')
-      }
-    }
 
 
     // Đăng ký Listener
@@ -233,7 +215,6 @@ function Board() {
     socketIoInstance.on('BE_COLUMN_REMOVED', onReceiveColumnRemove)
     socketIoInstance.on('BE_MEMBER_ADDED_TO_BOARD', onReceiveNewMember)
     socketIoInstance.on('BE_COLUMN_UPDATED', onReceiveColumnUpdate)
-    socketIoInstance.on('BE_MEMBER_REMOVED_FROM_BOARD', onMemberRemoved)
 
 
     // Clean Up event
@@ -246,9 +227,8 @@ function Board() {
         socketIoInstance.off('BE_COLUMN_REMOVED', onReceiveColumnRemove)
         socketIoInstance.off('BE_MEMBER_ADDED_TO_BOARD', onReceiveNewMember)
         socketIoInstance.off('BE_COLUMN_UPDATED', onReceiveColumnUpdate)
-        socketIoInstance.off('BE_MEMBER_REMOVED_FROM_BOARD', onMemberRemoved)
     }
-}, [dispatch, board?._id,currentUser, navigate])
+}, [dispatch, board?._id])
 
   if (!board) {
     return <PageLoadingSpinner caption="Loading Board..." />

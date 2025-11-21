@@ -1,6 +1,7 @@
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
 import { toast } from 'react-toastify'
+import axios from 'axios'
 
 /** Boards */
 // Đã move vào redux
@@ -81,10 +82,24 @@ export const inviteUserToBoardAPI = async (data) => {
   toast.success('User invited to board successfully!')
   return response.data
 }
-// Thêm vào file apis của bạn
-export const removeMemberFromBoardAPI = async (boardId, userId) => {
-  const response = await authorizedAxiosInstance.delete(
-    `${API_ROOT}/v1/boards/${boardId}/members/${userId}`
-  )
+
+// --- LABELS APIs ---
+export const fetchLabelsAPI = async (boardId) => {
+  const response = await axios.get(`${API_ROOT}/v1/labels/board/${boardId}`)
+  return response.data
+}
+
+export const createNewLabelAPI = async (data) => {
+  const response = await axios.post(`${API_ROOT}/v1/labels`, data)
+  return response.data
+}
+
+export const updateLabelAPI = async (labelId, data) => {
+  const response = await axios.put(`${API_ROOT}/v1/labels/${labelId}`, data)
+  return response.data
+}
+
+export const deleteLabelAPI = async (labelId) => {
+  const response = await axios.delete(`${API_ROOT}/v1/labels/${labelId}`)
   return response.data
 }

@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "author": "trello clone",
-  "description": "trello clone",
+  "author": "TrungQuanDev - Một Lập Trình Viên",
+  "description": "https://youtube.com/@trungquandev",
   "engines": {
     "node": ">=18.x"
   },

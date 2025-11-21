@@ -54,10 +54,10 @@ function CardActivitySection({ cardComments=[], onAddCardComment }) {
       }
       {cardComments.map((comment, index) =>
         <Box sx={{ display: 'flex', gap: 1, width: '100%', mb: 1.5 }} key={index}>
-          <Tooltip title="trello clone">
+          <Tooltip title="trungquandev">
             <Avatar
               sx={{ width: 36, height: 36, cursor: 'pointer' }}
-              alt="trello clone"
+              alt="trungquandev"
               src={comment.userAvatar}
             />
           </Tooltip>

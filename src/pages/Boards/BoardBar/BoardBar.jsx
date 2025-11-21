@@ -9,7 +9,6 @@ import { Tooltip } from '@mui/material'
 import { capitalizeFirstLetter } from '~/utils/formatters'
 import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
-import BoardMembersManager from './BoardMembersManager'
 
 const MENU_STYLES = {
   color: 'white',
@@ -72,9 +71,8 @@ function BoardBar({ board }) {
           clickable
         />
       </Box>
-      
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <BoardMembersManager board={board} />
         {/* Xử lý mời user vào làm thành viên của board */}
         <InviteBoardUser boardId={board._id} />
 
