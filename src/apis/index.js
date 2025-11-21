@@ -101,6 +101,7 @@ export const updateLabelAPI = async (labelId, data) => {
 
 export const deleteLabelAPI = async (labelId) => {
   const response = await axios.delete(`${API_ROOT}/v1/labels/${labelId}`)
+}
 // Thêm vào file apis của bạn
 export const removeMemberFromBoardAPI = async (boardId, userId) => {
   const response = await authorizedAxiosInstance.delete(
