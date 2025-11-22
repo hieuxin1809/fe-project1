@@ -24,7 +24,7 @@ export default function Login() {
     try {
       const result = await loginAPI({ email, password });
       localStorage.setItem("login", "true");
-      localStorage.setItem("userId", result.id);
+      localStorage.setItem("userId", result.id);gggg
 
       navigate("/home");
     } catch (error) {
