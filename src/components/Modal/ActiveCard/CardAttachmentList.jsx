@@ -23,7 +23,7 @@ function CardAttachmentList({ attachments = [], cardId }) {  // 👈 thêm cardI
     <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
         <AttachFileIcon />
-        <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>
+        <Typography variant="span" sx={{ fontWeight: '600', fontSize: '18px' }}>
           Attachments ({attachments.length})
         </Typography>
       </Box>
