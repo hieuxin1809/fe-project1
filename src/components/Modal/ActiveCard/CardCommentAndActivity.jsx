@@ -30,12 +30,13 @@ function CardActivitySection({ cardComments = [], onAddCardComment }) {
     <Box sx={{ mt: 2 }}>
       {/* Ô input nhập comment */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        <Avatar
+        {/* <Avatar
           sx={{ width: 36, height: 36, cursor: 'pointer' }}
           alt="User Avatar"
           src={currentUser?.avatar}
-        />
+        /> */}
         <TextField
+          size='small'
           fullWidth
           placeholder="Viết bình luận..."
           type="text"
