@@ -288,11 +288,16 @@ function ActiveCard() {
 
     let formData = new FormData()
     for (const file of files) {
-      const error = singleFileValidator(file)
-      if (error) {
-        toast.error(error)
+      // const error = singleFileValidator(file)
+      const LIMIT_SIZE = 10 * 1024 * 1024; // 10MB
+      if (file.size > LIMIT_SIZE) {
+        toast.error(`File "${file.name}" quá lớn! Vui lòng chọn file dưới 10MB.`)
         return
       }
+      // if (error) {
+      //   toast.error(error)
+      //   return
+      // }
       formData.append('attachment', file)
     }
 
