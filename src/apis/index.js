@@ -3,13 +3,6 @@ import { API_ROOT } from '~/utils/constants'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 
-/** Boards */
-// Đã move vào redux
-// export const fetchBoardDetailsAPI = async (boardId) => {
-//   const response = await axios.get(`${API_ROOT}/v1/boards/${boardId}`)
-//   // Lưu ý: axios sẽ trả kết quả về qua property của nó là data
-//   return response.data
-// }
 
 export const updateBoardDetailsAPI = async (boardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
@@ -102,7 +95,6 @@ export const updateLabelAPI = async (labelId, data) => {
 export const deleteLabelAPI = async (labelId) => {
   const response = await axios.delete(`${API_ROOT}/v1/labels/${labelId}`)
 }
-// Thêm vào file apis của bạn
 export const removeMemberFromBoardAPI = async (boardId, userId) => {
   const response = await authorizedAxiosInstance.delete(
     `${API_ROOT}/v1/boards/${boardId}/members/${userId}`

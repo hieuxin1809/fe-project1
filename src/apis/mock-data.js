@@ -21,7 +21,7 @@ export const mockData = {
             columnId: 'column-id-01',
             title: 'Title of card 01',
             description: 'Markdown Syntax ',
-            cover: 'https://trungquandev.com/wp-content/uploads/2022/07/fair-mern-stack-advanced-banner-trungquandev.jpg',
+            cover: 'https://miro.medium.com/v2/resize:fit:1400/1*YkY6PZ6Yh3KXJ8yG8K3Zcw.png',
             memberIds: ['test-user-id-01'],
             comments: ['test comment 01', 'test comment 02'],
             attachments: ['test attachment 01', 'test attachment 02', 'test attachment 03']
@@ -60,15 +60,7 @@ export const mockData = {
         _id: 'column-id-04',
         boardId: 'board-id-01',
         title: 'Empty Column 04',
-        /**
-         * Cách xử lý bug logic thư viện Dnd-kit khi Column là rỗng:
-         * Phía FE sẽ tự tạo ra một cái card đặc biệt: Placeholder Card, không liên quan tới Back-end
-         * Card đặc biệt này sẽ được ẩn ở giao diện UI người dùng.
-         * Cấu trúc Id của cái card này để Unique rất đơn giản, không cần phải làm random phức tạp:
-         * "columnId-placeholder-card" (mỗi column chỉ có thể có tối đa một cái Placeholder Card)
-         * Quan trọng khi tạo: phải đầy đủ: (_id, boardId, columnId, FE_PlaceholderCard)
-         *** Kỹ hơn nữa về cách tạo chuẩn ở bước nào thì sẽ ở học phần tích hợp API Back-end vào dự án. (bởi vì đây là file mock-data)
-         */
+        
         cardOrderIds: ['column-id-04-placeholder-card'],
         cards: [
           {
