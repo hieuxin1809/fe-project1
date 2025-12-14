@@ -50,15 +50,9 @@ function Boards() {
 
   // Xử lý phân trang từ url với MUI: https://mui.com/material-ui/react-pagination/#router-integration
   const location = useLocation()
-  /**
-   * Parse chuỗi string search trong location về đối tượng URLSearchParams trong JavaScript
-   * https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
-   */
+  
   const query = new URLSearchParams(location.search)
-  /**
-   * Lấy giá trị page từ query, default sẽ là 1 nếu không tồn tại page từ url.
-   * Nhắc lại kiến thức cơ bản hàm parseInt cần tham số thứ 2 là Hệ thập phân (hệ đếm cơ số 10) để đảm bảo chuẩn số cho phân trang
-   */
+
   const page = parseInt(query.get('page') || '1', 10)
 
   const updateStateData = (res) => {
