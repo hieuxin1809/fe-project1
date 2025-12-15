@@ -77,6 +77,10 @@ function ChecklistItem({
             onSetEditing(null);
             return;
         }
+        // 1. Tìm ra ID thành viên vừa được thêm vào (nếu có)
+        const oldIds = item.assignedMemberIds || [];
+        // Lấy những id có trong editAssignedIds mà không có trong oldIds
+       const addedMemberIds = editAssignedIds.filter(id => !oldIds.includes(id));
         const newChecklistsArray = currentChecklists.map(c => {
             if (c._id === checklistId) {
                 const newItems = c.items.map(i => {
@@ -94,7 +98,15 @@ function ChecklistItem({
             }
             return c;
         });
-        await callApiUpdateCard({ checklists: newChecklistsArray });
+        // 3. Chuẩn bị payload để gửi đi
+        const updateData = {
+            checklists: newChecklistsArray,
+            // [LOGIC MỚI] Gửi mảng các thành viên mới thêm vào để Backend gửi mail
+            ...(addedMemberIds.length > 0 && { addedChecklistMemberIds: addedMemberIds }) 
+        };
+        
+        // 4. Gọi API Update Card Chung
+        await callApiUpdateCard(updateData);
         onSetEditing(null);
     };
 

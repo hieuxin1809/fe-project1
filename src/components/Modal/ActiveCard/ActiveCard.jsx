@@ -472,7 +472,13 @@ function ActiveCard() {
       return c;
     });
 
-    await callApiUpdateCard({ checklists: newChecklistsArray });
+    const updateData = {
+        checklists: newChecklistsArray,
+        // Nếu là thêm mới, gửi mảng chứa 1 ID đó
+        ...(!isAssigned && { addedChecklistMemberIds: [memberId] }) 
+    }
+
+    await callApiUpdateCard(updateData);
 
     setTargetChecklistItem({
       ...targetChecklistItem,

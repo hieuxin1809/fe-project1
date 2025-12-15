@@ -22,7 +22,8 @@ import {
   moveColumnsFromSocket,
   removeColumnFromSocket,
   addNewMemberToBoard,
-  updateColumnTitleFromSocket
+  updateColumnTitleFromSocket,
+  removeMemberFromBoard
 } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams , useNavigate } from 'react-router-dom'

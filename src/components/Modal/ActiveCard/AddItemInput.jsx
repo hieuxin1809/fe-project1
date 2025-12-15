@@ -23,6 +23,7 @@ function AddItemInput({ checklist, callApiUpdateCard, currentChecklists, cardMem
     const [newItemDueDate, setNewItemDueDate] = useState(null); // Lưu Date object
     const [newItemAssignedIds, setNewItemAssignedIds] = useState([]); // Lưu mảng IDs
 
+
     // --- State cho Dialog/Menu ---
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour')); // State tạm cho picker
@@ -75,6 +76,8 @@ function AddItemInput({ checklist, callApiUpdateCard, currentChecklists, cardMem
         const newItems = [...(targetChecklist.items || []), newItem];
         const newChecklistsArray = currentChecklists.map(c => {
             if (c._id === checklist._id) {
+                const targetChecklist = currentChecklists.find(c => c._id === checklist._id);
+                const newItems = [...(targetChecklist.items || []), newItem];
                 // Khi THÊM item, chúng ta cũng cần tính lại progress
                 const totalItemsCount = newItems.length;
                 const doneItemsCount = newItems.filter(i => i.isDone).length;
@@ -85,9 +88,13 @@ function AddItemInput({ checklist, callApiUpdateCard, currentChecklists, cardMem
             return c;
         });
 
-        await callApiUpdateCard({
-            checklists: newChecklistsArray
-        });
+        const updateData = {
+            checklists: newChecklistsArray,
+            // Nếu có thành viên được chọn, gửi mảng ID
+            ...(newItemAssignedIds.length > 0 && { addedChecklistMemberIds: newItemAssignedIds }) 
+        };
+
+        await callApiUpdateCard(updateData);
 
         // Reset tất cả state
         resetLocalState();

@@ -62,7 +62,18 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
   if (error.response?.status === 401) {
     axiosReduxStore.dispatch(logoutUserAPI(false))
   }
-
+  if (error.response?.status === 403) {
+    // Lấy message từ Backend trả về hoặc tự custom
+    const errorMessage = error.response?.data?.message || 'Bạn không có quyền truy cập tài nguyên này!'
+    toast.error(errorMessage)
+    
+    // Redirect cứng về trang danh sách Boards. 
+    // Vì đây là file JS thường, không dùng được hook useNavigate của React Router 
+    // nên ta dùng window.location.href
+    window.location.href = '/boards'
+    
+    return Promise.reject(error)
+  }
   // Trường hợp 2: Nếu như nhận mã 410 từ BE, thì sẽ gọi api refresh token để làm mới lại accessToken
   // Trường hợp 2 > Bước 1: Đầu tiên lấy được các request API đang bị lỗi thông qua error.config
   const originalRequests = error.config
@@ -117,7 +128,7 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
     errorMessage = error.response?.data?.message
   }
   // Dùng toastify để hiển thị bất kể mọi mã lỗi lên màn hình - Ngoại trừ mã 410 - GONE phục vụ việc tự động refresh lại token.
-  if (error.response?.status !== 410) {
+  if (error.response?.status !== 410 && error.response?.status !== 403) {
     toast.error(errorMessage)
   }
 
