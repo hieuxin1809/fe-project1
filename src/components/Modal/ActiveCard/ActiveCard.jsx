@@ -614,18 +614,18 @@ function ActiveCard() {
         {/* === PHẦN BODY: CHỨA GRID 8:4 === */}
         <Box sx={{
           flex: 1,
-          overflow: 'hidden',
+          overflowY: { xs: 'auto', md: 'hidden' },
           display: 'flex'
         }}>
-          <Grid container sx={{ height: '100%', width: '100%', m: 0 }}>
+          <Grid container sx={{height: { xs: 'auto', md: '100%' }, width: '100%', m: 0 }}>
 
             {/* === CỘT TRÁI (7 phần) === */}
             <Grid xs={12} md={7}
               ref={leftColumnRef}
               onScroll={handleLeftColumnScroll}
               sx={{
-                height: '100%',
-                overflowY: 'auto',
+                height: { xs: 'auto', md: '100%' },
+                overflowY: { xs: 'unset', md: 'auto' },
                 position: 'relative',
                 pt: 3, pl: 3, pr: 2, pb: 3,
                 borderRight: '1px solid',
@@ -841,8 +841,8 @@ function ActiveCard() {
 
             {/* === CỘT PHẢI (5 phần) === */}
             <Grid xs={12} md={5} sx={{
-              height: '100%',
-              overflowY: 'auto',
+              height: { xs: 'auto', md: '100%' },
+              overflowY: { xs: 'unset', md: 'auto' },
               pt: 3, pr: 3, pl: 2, pb: 3,
               '&::-webkit-scrollbar': { width: '8px' },
               '&::-webkit-scrollbar-thumb': { backgroundColor: '#ced0da', borderRadius: '8px' },
