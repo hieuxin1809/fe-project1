@@ -5,7 +5,6 @@ export const capitalizeFirstLetter = (val) => {
 }
 
 /**
- * Video 37.2 hàm generatePlaceholderCard: Cách xử lý bug logic thư viện Dnd-kit khi Column là rỗng:
  * Phía FE sẽ tự tạo ra một cái card đặc biệt: Placeholder Card, không liên quan tới Back-end
  * Card đặc biệt này sẽ được ẩn ở giao diện UI người dùng.
  * Cấu trúc Id của cái card này để Unique rất đơn giản, không cần phải làm random phức tạp:

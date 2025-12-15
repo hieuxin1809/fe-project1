@@ -176,12 +176,12 @@ function SidebarCreateBoardModal({ afterCreateNewBoard }) {
                       onChange={(event, value) => field.onChange(value)}
                       value={field.value}
                     >
-                      <FormControlLabel
+                      {/* <FormControlLabel
                         value={BOARD_TYPES.PUBLIC}
                         control={<Radio size="small" />}
                         label="Public"
                         labelPlacement="start"
-                      />
+                      /> */}
                       <FormControlLabel
                         value={BOARD_TYPES.PRIVATE}
                         control={<Radio size="small" />}

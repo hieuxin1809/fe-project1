@@ -8,7 +8,6 @@ import { logoutUserAPI } from '~/redux/user/userSlice'
 * Không thể import { store } from '~/redux/store' theo cách thông thường như các file jsx component
 * Giải pháp: Inject store: là kỹ thuật khi cần sử dụng biến redux store ở các file ngoài phạm vi react component như file authorizeAxios hiện tại
 * Hiểu đơn giản: khi ứng dụng bắt đầu chạy lên, code sẽ chạy vào main.jsx đầu tiên, từ bên đó chúng ta gọi hàm injectStore ngay lập tức để gán biến mainStore vào biến axiosReduxStore cục bộ trong file này.
-* https://redux.js.org/faq/code-structure#how-can-i-use-the-redux-store-in-non-component-files
 */
 let axiosReduxStore
 export const injectStore = mainStore => {
@@ -23,10 +22,6 @@ authorizedAxiosInstance.defaults.timeout = 1000 * 60 * 10
 // withCredentials: Sẽ cho phép axios tự động gửi cookie trong mỗi request lên BE (phục vụ việc chúng ta sẽ lưu JWT tokens (refresh & access) vào trong httpOnly Cookie của trình duyệt)
 authorizedAxiosInstance.defaults.withCredentials = true
 
-/**
- * Cấu hình Interceptors (Bộ đánh chặn vào giữa mọi Request & Response)
- * https://axios-http.com/docs/interceptors
- */
 // Interceptor Request: Can thiệp vào giữa những cái request API
 authorizedAxiosInstance.interceptors.request.use((config) => {
   // Kỹ thuật chặn spam click (xem kỹ mô tả ở file formatters chứa function)
@@ -81,7 +76,6 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
 
   // if (error.response?.status === 410 && !originalRequests._retry) {
   if (error.response?.status === 410 && originalRequests) {
-    // UPDATE THÊM: Có thể bỏ không cần thêm cái _retry giống như nhiều bài hướng dẫn khác trên mạng nữa vì chúng ta đang làm chuẩn với biến refreshTokenPromise ở trên rồi, nếu muốn hiểu rõ hơn thì có thể xem riêng phần này ở bộ JWT trên kênh của mình nhé, Link: https://www.youtube.com/playlist?list=PLP6tw4Zpj-RJwtNw9564QKFf93hWiDnR_
     // Gán thêm một giá trị _retry luôn = true trong khoảng thời gian chờ, đảm bảo việc refresh token này chỉ luôn gọi 1 lần tại 1 thời điểm (nhìn lại điều kiện if ngay phía trên)
     // originalRequests._retry = true
 
